@@ -1,76 +1,41 @@
-//create web server 
-    const express = require('express');
-const app = express();
+// create web server and listen to port 3000
+// create a home page with a form to input a comment
+// create a comments page to display all comments
+
+const express = require('express');
 const bodyParser = require('body-parser');
+const fs = require('fs');
+const app = express();
+app.use(bodyParser.urlencoded({ extended: true }));
 
-//use body parser
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+// home page
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/index.html');
+});
 
-//set view engine
-app.set('view engine', 'ejs');
+// comments page
+app.get('/comments', (req, res) => {
+    fs.readFile(__dirname + '/comments.txt', 'utf8', (err, data) => {
+        if (err) {
+            res.send('No comments yet!');
+        } else {
+            res.send(data);
+        }
+    });
+});
 
-//set public folder
-app.use(express.static('public'));
+// post comment
+app.post('/', (req, res) => {
+    const comment = req.body.comment;
+    fs.appendFile(__dirname + '/comments.txt', comment + '\n', (err) => {
+        if (err) {
+            res.send('Error saving comment');
+        } else {
+            res.redirect('/comments');
+        }
+    });
+});
 
-//include routes
-const home = require('./routes/home');
-const comment = require('./routes/comment');
-
-//use routes
-app.use('/', home);
-app.use('/comment', comment);
-
-//listen port
 app.listen(3000, () => {
     console.log('Server is running on http://localhost:3000');
-}); 
-// Path: home.js
-const express = require('express');
-const router = express.Router();
-
-router.get('/', (req, res) => {
-    res.render('index', { title: 'Home Page', message: 'Welcome to the home page!' });
 });
-
-module.exports = router; 
-// Path: comment.js
-const express = require('express');
-const router = express.Router();
-
-router.get('/', (req, res) => {
-    res.render('comment', { title: 'Comment Page', message: 'Welcome to the comment page!' });
-});
-
-module.exports = router; 
-// Path: views/index.ejs
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %></title>
-</head>
-<body>
-    <h1><%= title %></h1>
-    <p><%= message %></p>
-</body>
-</html> 
-// Path: views/comment.ejs
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %></title>
-</head>
-<body>
-    <h1><%= title %></h1>
-    <p><%= message %></p>
-</body>
-</html> 
- Now, run the server using the following command: 
- node app.js 
- Open your browser and navigate to  http://localhost:3000  to see the home page.
